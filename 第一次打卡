@@ -1,0 +1,115 @@
+#数据预处理
+
+import numpy as np
+import pandas as pd
+
+data = pd.read_csv('data/data.csv',encoding='gb18030')
+
+#查看数据
+print(data.info())  # 4754行 90列 
+print(data.describe())
+
+column_list = list(data.columns)
+# print(column_list)
+
+#查看每列数据与是否有空值，每次20列
+print(data[column_list[:20]].head())
+# 无用的列：Unnamed: 0,custid trade_no bank_card_no first_transaction_time
+print(data[column_list[:20]].isnull().sum())
+
+#查看第二个20列
+print(data[column_list[20:40]].head())
+# 无用的列：
+#需要做转换的列  reg_preference_for_trad
+print(data[column_list[20:40]].isnull().sum())
+
+#查看第三个20列
+print(data[column_list[40:60]].head())
+# 无用的列：id_name last_query_time
+#需要做转换的列  
+print(data[column_list[40:60]].isnull().sum())
+
+#查看第四个20列
+print(data[column_list[60:80]].head())
+# 无用的列：load_latest_time
+#需要做转换的列 
+print(data[column_list[40:60]].isnull().sum())
+
+#查看剩下的列
+print(data[column_list[80:]].head())
+# 无用的列：latest_query_day  loans_latest_day
+#需要做转换的列  
+print(data[column_list[80:]].isnull().sum())
+
+#删除无用列
+useless_columns = ['Unnamed: 0','custid','trade_no', 'bank_card_no', 'first_transaction_time', 'id_name', 'latest_query_time', 'loans_latest_time','latest_query_day', 'loans_latest_day']
+data = data.drop(useless_columns,axis=1)
+
+#填充空值
+#空值大于10的填充，小于10的最后删除
+#填充 student_featur 空值 ,以 0 填充 
+data['student_feature'].fillna(0,inplace=True)
+data['avg_price_top_last_12_valid_month'].fillna(data['avg_price_top_last_12_valid_month'].mean(),inplace=True)
+data['cross_consume_count_last_1_month'].fillna(data['cross_consume_count_last_1_month'].mean(),inplace=True)
+data['trans_fail_top_count_enum_last_1_month'].fillna(data['trans_fail_top_count_enum_last_1_month'].mean(),inplace=True)
+data['trans_fail_top_count_enum_last_6_month'].fillna(data['trans_fail_top_count_enum_last_6_month'].mean(),inplace=True)
+data['trans_fail_top_count_enum_last_12_month'].fillna(data['trans_fail_top_count_enum_last_12_month'].mean(),inplace=True)
+data['consume_mini_time_last_1_month'].fillna(data['consume_mini_time_last_1_month'].mean(),inplace=True)
+data['apply_score'].fillna(data['apply_score'].mean(),inplace=True)
+data['apply_credibility'].fillna(data['apply_credibility'].mean(),inplace=True)
+data['query_org_count'].fillna(data['query_org_count'].mean(),inplace=True)
+data['query_finance_count'].fillna(data['query_finance_count'].mean(),inplace=True)
+data['query_cash_count'].fillna(data['query_cash_count'].mean(),inplace=True)
+data['query_sum_count'].fillna(data['query_sum_count'].mean(),inplace=True)
+data['latest_one_month_apply'].fillna(data['latest_one_month_apply'].mean(),inplace=True)
+data['latest_three_month_apply'].fillna(data['latest_three_month_apply'].mean(),inplace=True)
+data['latest_six_month_apply'].fillna(data['latest_six_month_apply'].mean(),inplace=True)
+data['loans_score'].fillna(data['loans_score'].mean(),inplace=True)
+data['railway_consume_count_last_12_month'].fillna(data['railway_consume_count_last_12_month'].mean(),inplace=True)
+data['jewelry_consume_count_last_6_month'].fillna(data['jewelry_consume_count_last_6_month'].mean(),inplace=True)
+data['loans_max_limit'].fillna(data['loans_max_limit'].mean(),inplace=True)
+data['loans_avg_limit'].fillna(data['loans_avg_limit'].mean(),inplace=True)
+data['consfin_credit_limit'].fillna(data['consfin_credit_limit'].mean(),inplace=True)
+data['consfin_credibility'].fillna(data['consfin_credibility'].mean(),inplace=True)
+data['consfin_org_count_current'].fillna(data['consfin_org_count_current'].mean(),inplace=True)
+data['consfin_product_count'].fillna(data['consfin_product_count'].mean(),inplace=True)
+data['consfin_max_limit'].fillna(data['consfin_max_limit'].mean(),inplace=True)
+data['consfin_avg_limit'].fillna(data['consfin_avg_limit'].mean(),inplace=True)
+data['loans_credibility_behavior'].fillna(data['loans_credibility_behavior'].mean(),inplace=True)
+data['loans_count'].fillna(data['loans_count'].mean(),inplace=True)
+data['loans_settle_count'].fillna(data['loans_settle_count'].mean(),inplace=True)
+data['loans_overdue_count'].fillna(data['loans_overdue_count'].mean(),inplace=True)
+data['loans_org_count_behavior'].fillna(data['loans_org_count_behavior'].mean(),inplace=True)
+data['consfin_org_count_behavior'].fillna(data['consfin_org_count_behavior'].mean(),inplace=True)
+data['loans_cash_count'].fillna(data['loans_cash_count'].mean(),inplace=True)
+# print(data.isnull().sum())
+
+#删除其它有空值的列   #4448行 80列
+data = data.dropna()
+
+#转换列  reg_preference_for_trad
+print(data['reg_preference_for_trad'].value_counts())
+city_map = {'一线城市':1,'二线城市':2,'三线城市':3,'其他城市':4,'境外':5}
+data['reg_preference_for_trad'] = data['reg_preference_for_trad'].map(city_map)
+print(data['reg_preference_for_trad'].value_counts())
+
+#生成 X  y
+y = data['status']
+X = data.drop('status',axis=1)
+
+#查看非 int  float 的列
+dtype_list = X.dtypes.values.tolist() 
+indics_list = X.dtypes.index.tolist() 
+# print(type(str(dtype_list[0])))
+for i in range(len(dtype_list)):
+    if not str(dtype_list[i]).startswith('int') and not str(dtype_list[i]).startswith('float'):
+        print(indics_list[i],dtype_list[i])
+
+#source 列为object类型，且全部值都为xs,可删除
+X = X.drop('source',axis=1)
+
+#查看 y  值分布
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.countplot(y)
